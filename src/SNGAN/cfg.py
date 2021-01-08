@@ -32,7 +32,7 @@ def parse_args():
         '-gen_bs',
         '--gen_batch_size',
         type=int,
-        default=64,
+        default=128,
         help='size of the batches')
     parser.add_argument(
         '-dis_bs',
@@ -110,7 +110,7 @@ def parse_args():
     parser.add_argument(
         '--d_spectral_norm',
         type=str2bool,
-        default=False,
+        default=True,
         help='add spectral_norm on discriminator?')
     parser.add_argument(
         '--g_spectral_norm',
@@ -130,9 +130,9 @@ def parse_args():
     parser.add_argument('--init_type', type=str, default='normal',
                         choices=['normal', 'orth', 'xavier_uniform', 'false'],
                         help='The init type')
-    parser.add_argument('--gf_dim', type=int, default=64,
+    parser.add_argument('--gf_dim', type=int, default=256,
                         help='The base channel num of gen')
-    parser.add_argument('--df_dim', type=int, default=64,
+    parser.add_argument('--df_dim', type=int, default=128,
                         help='The base channel num of disc')
     parser.add_argument(
         '--model',
