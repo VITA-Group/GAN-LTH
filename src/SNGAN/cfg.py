@@ -127,7 +127,7 @@ def parse_args():
         type=str,
         default='./data',
         help='The path of data set')
-    parser.add_argument('--init_type', type=str, default='normal',
+    parser.add_argument('--init_type', type=str, default='xavier_uniform',
                         choices=['normal', 'orth', 'xavier_uniform', 'false'],
                         help='The init type')
     parser.add_argument('--gf_dim', type=int, default=256,

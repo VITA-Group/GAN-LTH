@@ -1,5 +1,4 @@
-=#!/usr/bin/python3
-import random
+#!/usr/bin/python3
 
 import argparse, itertools, os
 import numpy as np 
@@ -9,10 +8,9 @@ from skimage import img_as_ubyte
 
 import torchvision.transforms as transforms
 from torch.utils.data import DataLoader
-from tqdm import tqdm
+from torch.autograd import Variable
 from PIL import Image
 import torch
-
 from models import Generator, Discriminator, Generator_ori
 from utils import ReplayBuffer, LambdaLR, weights_init_normal
 from datasets import ImageDataset
@@ -35,14 +33,9 @@ parser.add_argument('--upsample', default='transconv', choices=['ori', 'transcon
 opt = parser.parse_args()
 print(opt)
 
-random.seed(opt.seed)
-torch.manual_seed(opt.seed)
-if torch.cuda.is_available():
-    torch.cuda.manual_seed(opt.seed)
-
 os.environ['CUDA_VISIBLE_DEVICES'] = opt.gpu
-torch.backends.cudnn.enabled = True
 torch.backends.cudnn.benchmark = True
+
 ## mkdir:
 dataset_dir = os.path.join('datasets', opt.dataset)
 output_dir = os.path.join('output_%s' % opt.upsample, opt.dataset)
@@ -61,7 +54,6 @@ if opt.upsample == 'ori':
 else:
     netG_A2B = Generator(opt.input_nc, opt.output_nc)
     netG_B2A = Generator(opt.output_nc, opt.input_nc)
-    
 netD_A = Discriminator(opt.input_nc)
 netD_B = Discriminator(opt.output_nc)
 
@@ -70,6 +62,11 @@ netG_A2B.load_state_dict(torch.load(os.path.join(opt.rand, 'netG_A2B_seed_{}.pth
 netG_B2A.load_state_dict(torch.load(os.path.join(opt.rand, 'netG_B2A_seed_{}.pth.tar'.format(opt.seed))))
 netD_A.load_state_dict(torch.load(os.path.join(opt.rand, 'netD_A_seed_{}.pth.tar'.format(opt.seed))))
 netD_B.load_state_dict(torch.load(os.path.join(opt.rand, 'netD_B_seed_{}.pth.tar'.format(opt.seed))))
+
+netG_A2B.train()
+netD_A.train()
+netD_B.train()
+netG_B2A.train()
 
 netG_A2B.cuda()
 netG_B2A.cuda()
@@ -91,8 +88,12 @@ lr_scheduler_G = torch.optim.lr_scheduler.LambdaLR(optimizer_G, lr_lambda=Lambda
 lr_scheduler_D_A = torch.optim.lr_scheduler.LambdaLR(optimizer_D_A, lr_lambda=LambdaLR(opt.n_epochs, opt.epoch, opt.decay_epoch).step)
 lr_scheduler_D_B = torch.optim.lr_scheduler.LambdaLR(optimizer_D_B, lr_lambda=LambdaLR(opt.n_epochs, opt.epoch, opt.decay_epoch).step)
 
-target_real = torch.ones(opt.batchSize).cuda()
-target_fake = torch.ones(opt.batchSize).cuda()
+# Inputs & targets memory allocation
+Tensor = torch.cuda.FloatTensor
+input_A = Tensor(opt.batchSize, opt.input_nc, opt.size, opt.size)
+input_B = Tensor(opt.batchSize, opt.output_nc, opt.size, opt.size)
+target_real = Variable(Tensor(opt.batchSize).fill_(1.0), requires_grad=False)
+target_fake = Variable(Tensor(opt.batchSize).fill_(0.0), requires_grad=False)
 
 fake_A_buffer = ReplayBuffer()
 fake_B_buffer = ReplayBuffer()
@@ -114,13 +115,13 @@ dataloader = DataLoader(ImageDataset(dataset_dir, transforms_=transforms_, unali
 N = len(dataloader)
 print('N:', N) # 1334
 loss_G_lst, loss_D_lst, loss_G_GAN_lst, loss_G_cycle_lst, loss_G_identity_lst = [], [], [], [], []
-for epoch in tqdm(range(opt.epoch, opt.n_epochs)):
+for epoch in range(opt.epoch, opt.n_epochs):
     # reset loss to 0
     loss_G_value, loss_D_value, loss_G_GAN_value, loss_G_cycle_value, loss_G_identity_value = 0, 0, 0, 0, 0
     for i, batch in enumerate(dataloader):
         # Set model input
-        real_A = batch['A'].cuda()
-        real_B = batch['B'].cuda()
+        real_A = Variable(input_A.copy_(batch['A']))
+        real_B = Variable(input_B.copy_(batch['B']))
 
         ###### Generators A2B and B2A ######
         optimizer_G.zero_grad()
@@ -205,13 +206,11 @@ for epoch in tqdm(range(opt.epoch, opt.n_epochs)):
         loss_G_GAN_value += (loss_GAN_A2B + loss_GAN_B2A).data
         loss_G_cycle_value += (loss_cycle_ABA + loss_cycle_BAB).data
         loss_G_identity_value += (loss_identity_A + loss_identity_B).data
-
     if epoch % 5 == 0 or epoch == opt.n_epochs - 1:
         torch.save(netG_A2B.state_dict(), os.path.join(pth_dir, 'netG_A2B_epoch_{}.pth'.format(epoch)))
         torch.save(netG_B2A.state_dict(), os.path.join(pth_dir, 'netG_B2A_epoch_{}.pth'.format(epoch)))
         torch.save(netD_A.state_dict(), os.path.join(pth_dir, 'netD_A_epoch_{}.pth'.format(epoch)))
         torch.save(netD_B.state_dict(), os.path.join(pth_dir, 'netD_B_epoch_{}.pth'.format(epoch)))
-
     ## at the end of each epoch
     # plot loss:
     losses = {'loss_G': (loss_G_lst, loss_G_value), 'loss_D': (loss_D_lst, loss_D_value), 
@@ -229,20 +228,11 @@ for epoch in tqdm(range(opt.epoch, opt.n_epochs)):
         for key in images:
             img_np = images[key].detach().cpu().numpy().squeeze()
             img_np = (img_np + 1) / 2 # (-1,1) -> (0,1)
-            img_np = img_np[0] # use the first image
             img_np = img_as_ubyte(np.moveaxis(img_np, 0, -1)) # channel first to channel last.
             print('img_np:', img_np.shape)
-            
-            imsave(os.path.join(img_dir, 'epoch%d_%s.png' % (epoch, key)), img_np)
+            imsave(os.path.join(output_dir, 'epoch%d_%s.png' % (epoch, key)), img_np)
 
     # Update learning rates
     lr_scheduler_G.step()
     lr_scheduler_D_A.step()
     lr_scheduler_D_B.step()
-
-    # Save models checkpoints
-    # torch.save(netG_A2B.state_dict(), os.path.join(output_dir, 'netG_A2B.pth'))
-    # torch.save(netG_B2A.state_dict(), os.path.join(output_dir, 'netG_B2A.pth'))
-    # torch.save(netD_A.state_dict(), os.path.join(output_dir, 'netD_A.pth'))
-    # torch.save(netD_B.state_dict(), os.path.join(output_dir, 'netD_B.pth'))
-###################################

@@ -9,7 +9,6 @@ from utils.fid_score import create_inception_graph, check_or_download_inception
 
 import torch
 import os
-# os.environ['CUDA_VISIBLE_DEVICES'] = '7'
 import numpy as np
 import torch.nn as nn
 from tensorboardX import SummaryWriter
@@ -116,7 +115,7 @@ def main():
             
         lr_schedulers = (gen_scheduler, dis_scheduler) if args.lr_decay else None
         train(args, gen_net, dis_net, gen_optimizer, dis_optimizer, gen_avg_param, train_loader, epoch, writer_dict,
-              lr_schedulers, fix_G=(epoch < np.ceil(128000 / len(train_loader))) and args.fix_G and (epoch >= int(args.max_epoch / 2)) )
+              lr_schedulers)
 
         if epoch and epoch % args.val_freq == 0 or epoch == int(args.max_epoch)-1:
             backup_param = copy_params(gen_net)

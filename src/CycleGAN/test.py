@@ -96,7 +96,7 @@ if not opt.evaluate_all:
 
     sys.stdout.write('\n')
 else:
-    for i in range(0, 50, 5):
+    for i in range(0, 190, 10):
         generator_A2B = os.path.join(opt.input_dir, opt.dataset, 'pth', 'netG_A2B_epoch_%d.pth' % i)
         generator_B2A = os.path.join(opt.input_dir, opt.dataset, 'pth', 'netG_B2A_epoch_%d.pth' % i)
         #generator_A2B  = "output/netG_A2B.pth"
