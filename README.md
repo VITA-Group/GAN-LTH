@@ -11,7 +11,7 @@ For a range of GANs, we can find matching subnetworks at 67%-74% sparsity. We ob
 
 Iterative pruning results on SNGAN
 
-![](https://github.com//blob/main/Figs/result.png)
+![](https://github.com/VITA-Group/GAN-LTH/blob/main/Figs/result.png)
 
 ## Requirements
 
