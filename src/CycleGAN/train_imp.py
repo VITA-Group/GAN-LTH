@@ -49,11 +49,9 @@ random.seed(args.seed)
 torch.manual_seed(args.seed)
 if torch.cuda.is_available():
     torch.cuda.manual_seed(args.seed)
-torch.backends.cudnn.benchmark = True
 
-
-    
 os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu
+torch.backends.cudnn.benchmark = True
 
 ## mkdir:
 dataset_dir = os.path.join('datasets', args.dataset)
@@ -75,11 +73,6 @@ else:
     netG_B2A = Generator(args.output_nc, args.input_nc)
 netD_A = Discriminator(args.input_nc)
 netD_B = Discriminator(args.output_nc)
-
-netG_A2B.apply(weights_init_normal)
-netG_B2A.apply(weights_init_normal)
-netD_A.apply(weights_init_normal)
-netD_B.apply(weights_init_normal)
 
 netG_A2B.cuda()
 netG_B2A.cuda()
@@ -269,7 +262,7 @@ for iter_steps in range(args.states):
             loss_G_cycle_value += (loss_cycle_ABA + loss_cycle_BAB).data
             loss_G_identity_value += (loss_identity_A + loss_identity_B).data
 
-        if epoch % 10 == 0 or epoch == args.n_epochs - 1:
+        if epoch % 5 == 0 or epoch == args.n_epochs - 1:
             torch.save(netG_A2B.state_dict(), os.path.join(pth_dir, 'netG_A2B_epoch_{}.pth'.format(epoch)))
             torch.save(netG_B2A.state_dict(), os.path.join(pth_dir, 'netG_B2A_epoch_{}.pth'.format(epoch)))
             torch.save(netD_A.state_dict(), os.path.join(pth_dir, 'netD_A_epoch_{}.pth'.format(epoch)))
