@@ -28,41 +28,60 @@ Iterative pruning results on SNGAN
 ### SNGAN
 
 #### Generate Initial Weights
+```
 mkdir initial_weights
 python generate_initial_weights.py --model sngan_cifar10
+```
 #### Prepare FID statistics
 
 Download fid_stat:
 
 #### Baseline
-
+```
 python train.py --model sngan_cifar10 --exp_name sngan_cifar10 --init-path initial_weights
+```
 #### Iterative Magnitude Pruning on Generator (IMPG)
-
+```
 python train_impg.py --model sngan_cifar10 --exp_name sngan_cifar10 --init-path initial_weights 
-
+```
 #### Iterative Magnitude Pruning on Generator (IMPGD)
-
+```
 python train_impgd.py --model sngan_cifar10 --exp_name sngan_cifar10 --init-path initial_weights 
-
+```
 ### Iterative Magnitude Pruning on Generator (IMPGDKD)
 
-
+```
 python train_impgd.py --model sngan_cifar10 --exp_name sngan_cifar10 --init-path initial_weights --use-kd-d
+```
 
 ### CycleGAN
 
 #### Generate initial weights
 
+```
 mkdir initial_weights
 python generate_initial_weights.py
+```
+
 #### Download Data
 
+```
 ./download_dataset DATASET_NAME
+```
 #### Baseline
 
+```
 python train.py --dataset DATASET_NAME --rand initial_weights --gpu GPU 
+```
 
 #### IMPG
 
+```
 python train_impg.py --dataset DATASET_NAME --rand initial_weights --gpu GPU --pretrain PRETRAIN
+```
+
+#### IMPGD
+
+```
+python train_impg.py --dataset DATASET_NAME --rand initial_weights --gpu GPU --pretrain PRETRAIN
+```
