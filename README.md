@@ -34,7 +34,7 @@ python generate_initial_weights.py --model sngan_cifar10
 ```
 #### Prepare FID statistics
 
-Download fid_stat:
+Download FID statistics files from [here](https://drive.google.com/drive/folders/1UUQVT2Zj-kW1c2FJOFIdGdlDHA3gFJJd) to `fid_stat`. 
 
 #### Baseline
 ```

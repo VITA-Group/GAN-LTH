@@ -1,5 +1,5 @@
 import cfg
-from models.sngan_cifar10 import Generator
+from models.sngan_cifar10 import Generator, Discriminator
 import datasets
 from functions import VGGFeature, gram_matrix, validate_cp, soft_sign, show_sparsity, create_dir, LambdaLR, fourD2threeD, calculate_metrics
 from utils.utils import save_checkpoint_cp
@@ -20,7 +20,7 @@ args = cfg.parse_args()
 
 # dir:
 opt_str = 'adam_lr%s_sgd_lr%s_epoch%d_de%d_batch%d' % (args.lr_w, args.lr_gamma, args.max_epoch, args.decay_epoch, args.batch_size)
-loss_str = 'beta%s_rho%s_lc%s_%s' % (args.beta, args.rho, args.lc, args.lc_layer)
+loss_str = 'train_D_orig_beta%s_rho%s_lc%s_%s' % (args.beta, args.rho, args.lc, args.lc_layer)
 args.output_dir = os.path.join('output', '%s_%s' % (loss_str, opt_str))
 
 args.pth_dir = os.path.join(args.output_dir, 'pth')
@@ -32,9 +32,10 @@ args.do_FID = False
 create_dir(args.pth_dir), create_dir(args.img_dir), create_dir(args.gamma_dir), create_dir(args.fid_buffer_dir)
 
 # gpu:
+torch.manual_seed(args.random_seed)
 torch.cuda.manual_seed(args.random_seed)
 os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu
-torch.backends.cudnn.enabled = True
+torch.backends.cudnn.deterministic = False
 torch.backends.cudnn.benchmark = True
 
 
@@ -50,7 +51,7 @@ with torch.no_grad():
     # define model
     G0 = Generator(bottom_width=args.bottom_width, gf_dim=args.gf_dim, latent_dim=args.latent_dim).cuda()
     # load ckpt
-    pth_path = os.path.join('logs', 'sngan_cifar10_2020_07_04_03_54_30', 'Model', 'checkpoint_best.pth')
+    pth_path = os.path.join(args.load_path, 'Model', 'checkpoint_best.pth')
     checkpoint = torch.load(pth_path)
     G0.load_state_dict(checkpoint['avg_gen_state_dict'])
     best_dense_epoch = checkpoint['epoch']
@@ -64,15 +65,18 @@ for param in G0.parameters():
 
 # G
 G = Generator(bottom_width=args.bottom_width, gf_dim=args.gf_dim, latent_dim=args.latent_dim).cuda().eval()
+D = Discriminator(args=args).cuda()
 # intialize G as G0:
 G.load_state_dict(checkpoint['avg_gen_state_dict'])
+D.load_state_dict(checkpoint['dis_state_dict'])
 # parallel:
 # G = nn.DataParallel(G)
 print('G:', G)
+print('D:', D)
 
 # preload models:
 
-vgg = VGGFeature().cuda()
+vgg = VGGFeature(classi = True).cuda()
 
 # param list:
 W_lst, gamma_lst = [], []
@@ -85,6 +89,10 @@ print('gamma_lst:', len(gamma_lst))
 for para in gamma_lst:
     print(para.size())
 
+
+D_optimizer = torch.optim.Adam(D.parameters(), 0.001)
+D_scheduler = torch.optim.lr_scheduler.MultiStepLR(D_optimizer, 
+    milestones=[int(args.max_epoch/2), int(args.max_epoch*0.75)])
 # set optimizer
 W_optimizer = torch.optim.Adam(W_lst, args.lr_w)
 W_scheduler = torch.optim.lr_scheduler.LambdaLR(
@@ -131,8 +139,10 @@ for epoch in range(int(start_epoch), int(args.max_epoch)):
 
         W_optimizer.zero_grad()
         gamma_optimizer.zero_grad()
-
+        D_optimizer.zero_grad()
+        
         # foreward:
+        imgs = imgs.cuda()
         gen_z = torch.cuda.FloatTensor(np.random.normal(0, 1, (args.batch_size, args.latent_dim)))
         gen_imgs = G(gen_z)
         soft_gt = G0(gen_z)
@@ -141,9 +151,10 @@ for epoch in range(int(start_epoch), int(args.max_epoch)):
         gen_imgs = nn.functional.upsample(gen_imgs, (256,256))
         soft_gt = nn.functional.upsample(soft_gt, (256,256))
         # print('gen_imgs:', gen_imgs.size())
-        gen_imgs_vgg = vgg(gen_imgs)
-        soft_gt_vgg = vgg(soft_gt)
-
+        gen_imgs_vgg, fake_output = vgg(gen_imgs)
+        soft_gt_vgg, _ = vgg(soft_gt)
+        _, real_output = vgg(imgs)
+        
         # content loss
         if args.lc == 'vgg':
             if args.lc_layer == 'relu1_2':
@@ -177,7 +188,23 @@ for epoch in range(int(start_epoch), int(args.max_epoch)):
         # update:
         W_optimizer.step()
         gamma_optimizer.step()
-
+        
+        # train D
+        W_optimizer.zero_grad()
+        gamma_optimizer.zero_grad()
+        D_optimizer.zero_grad()
+        gen_imgs = G(gen_z)
+        real_validity = D(imgs)
+        fake_validity = D(gen_imgs)
+        
+        d_loss = torch.mean(nn.ReLU(inplace=True)(1.0 - real_validity)) + \
+                 torch.mean(nn.ReLU(inplace=True)(1 + fake_validity))
+                 
+        d_loss.backward()
+        D_optimizer.step()
+        W_optimizer.step()
+        gamma_optimizer.step()
+        
         # proximal gradient for channel pruning:
         current_lr = gamma_scheduler.get_lr()[0]
         for name, m in G.named_modules():
@@ -232,6 +259,7 @@ for epoch in range(int(start_epoch), int(args.max_epoch)):
         save_checkpoint_cp({
             'epoch': epoch + 1,
             'generator': G.state_dict(),
+            'discriminator': D.state_dict(),
             'W_optimizer': W_optimizer.state_dict(),
             'gamma_optimizer': gamma_optimizer.state_dict(),
             'best_fid': best_fid,

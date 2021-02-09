@@ -101,6 +101,9 @@ def parse_args():
         '--load-epoch',
         type=int,
         default=99)
+
+    parser.add_argument(
+        '--load-path', type=str)
     parser.add_argument('--save-path', type=str, default='initial_weights')
     parser.add_argument('--init-path', type=str, default='initial_weights')
     opt = parser.parse_args()
