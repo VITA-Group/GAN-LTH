@@ -19,39 +19,39 @@ def str2bool(v):
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        '--max_epoch',
+        '--max-epoch',
         type=int,
         default=200,
         help='number of epochs of training')
     parser.add_argument(
-        '--max_iter',
+        '--max-iter',
         type=int,
         default=50000,
         help='set the max iteration number')
     parser.add_argument(
-        '-gen_bs',
-        '--gen_batch_size',
+        '-gen-bs',
+        '--gen-batch-size',
         type=int,
         default=128,
         help='size of the batches')
     parser.add_argument(
-        '-dis_bs',
-        '--dis_batch_size',
+        '-dis-bs',
+        '--dis-batch-size',
         type=int,
         default=64,
         help='size of the batches')
     parser.add_argument(
-        '--g_lr',
+        '--g-lr',
         type=float,
         default=0.0002,
         help='adam: gen learning rate')
     parser.add_argument(
-        '--d_lr',
+        '--d-lr',
         type=float,
         default=0.0002,
         help='adam: disc learning rate')
     parser.add_argument(
-        '--lr_decay',
+        '--lr-decay',
         action='store_true',
         help='learning rate decay or not')
     parser.add_argument(
@@ -65,17 +65,17 @@ def parse_args():
         default=0.9,
         help='adam: decay of first order momentum of gradient')
     parser.add_argument(
-        '--num_workers',
+        '--num-workers',
         type=int,
         default=8,
         help='number of cpu threads to use during batch generation')
     parser.add_argument(
-        '--latent_dim',
+        '--latent-dim',
         type=int,
         default=128,
         help='dimensionality of the latent space')
     parser.add_argument(
-        '--img_size',
+        '--img-size',
         type=int,
         default=32,
         help='size of each image dimension')
@@ -85,35 +85,35 @@ def parse_args():
         default=3,
         help='number of image channels')
     parser.add_argument(
-        '--n_critic',
+        '--n-critic',
         type=int,
         default=5,
         help='number of training steps for discriminator per iter')
     parser.add_argument(
-        '--val_freq',
+        '--val-freq',
         type=int,
         default=20,
         help='interval between each validation')
     parser.add_argument(
-        '--print_freq',
+        '--print-freq',
         type=int,
         default=50,
         help='interval between each verbose')
     parser.add_argument(
-        '--load_path',
+        '--load-path',
         type=str,
         help='The reload model path')
     parser.add_argument(
-        '--exp_name',
+        '--exp-name',
         type=str,
         help='The name of exp')
     parser.add_argument(
-        '--d_spectral_norm',
+        '--d-spectral_norm',
         type=str2bool,
         default=True,
         help='add spectral_norm on discriminator?')
     parser.add_argument(
-        '--g_spectral_norm',
+        '--g-spectral_norm',
         type=str2bool,
         default=False,
         help='add spectral_norm on generator?')
@@ -123,26 +123,26 @@ def parse_args():
         default='cifar10',
         help='dataset type')
     parser.add_argument(
-        '--data_path',
+        '--data-path',
         type=str,
         default='./data',
         help='The path of data set')
-    parser.add_argument('--init_type', type=str, default='xavier_uniform',
+    parser.add_argument('--init-type', type=str, default='xavier_uniform',
                         choices=['normal', 'orth', 'xavier_uniform', 'false'],
                         help='The init type')
-    parser.add_argument('--gf_dim', type=int, default=256,
+    parser.add_argument('--gf-dim', type=int, default=256,
                         help='The base channel num of gen')
-    parser.add_argument('--df_dim', type=int, default=128,
+    parser.add_argument('--df-dim', type=int, default=128,
                         help='The base channel num of disc')
     parser.add_argument(
         '--model',
         type=str,
         default='sngan_cifar10',
         help='path of model')
-    parser.add_argument('--eval_batch_size', type=int, default=100)
-    parser.add_argument('--num_eval_imgs', type=int, default=50000)
+    parser.add_argument('--eval-batch-size', type=int, default=100)
+    parser.add_argument('--num-eval-imgs', type=int, default=50000)
     parser.add_argument(
-        '--bottom_width',
+        '--bottom-width',
         type=int,
         default=4,
         help="the base resolution of the GAN")
