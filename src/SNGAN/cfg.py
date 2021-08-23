@@ -151,7 +151,7 @@ def parse_args():
         type=str,
         default='l1',
         help="the pruning method of G")
-    parser.add_argument('--random_seed', type=int, default=12345)
+    parser.add_argument('--random_seed', type=int, default=1)
     # Baseline Group
     parser.add_argument('--reset-dis-net', action="store_true")
     parser.add_argument('--percent', type=float, help="prune percent")
@@ -169,6 +169,7 @@ def parse_args():
     parser.add_argument('--ratio', type=float, default=0.1)
     parser.add_argument('--gamma', type=float, default=0.01)
     parser.add_argument('--steps', type=int, default=1)
+    parser.add_argument('--exp_name', type=str, default="run")
 
     opt = parser.parse_args()
     return opt

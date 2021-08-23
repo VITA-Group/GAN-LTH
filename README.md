@@ -40,9 +40,13 @@ Download FID statistics files from [here](https://www.dropbox.com/sh/lau1g8n0moj
 ```
 python train.py --model sngan_cifar10 --exp_name sngan_cifar10 --init-path initial_weights
 ```
+
+Baseline models are also available [here](https://drive.google.com/drive/folders/1-QSfRrVpHSrHppmEf8fuAUn6Nv-N2z2R?usp=sharing). 
+
+
 #### Iterative Magnitude Pruning on Generator (IMPG)
 ```
-python train_impg.py --model sngan_cifar10 --exp_name sngan_cifar10 --init-path initial_weights 
+python train_impg.py --model sngan_cifar10 --exp_name sngan_cifar10 --init-path initial_weights --load-path <path/to/log> 
 ```
 #### Iterative Magnitude Pruning on Generator (IMPGD)
 ```
@@ -85,3 +89,7 @@ python train_impg.py --dataset DATASET_NAME --rand initial_weights --gpu GPU --p
 ```
 python train_impg.py --dataset DATASET_NAME --rand initial_weights --gpu GPU --pretrain PRETRAIN
 ```
+
+## Acknowledgement
+
+Inception Score code from OpenAI's Improved GAN (official), and the FID code and CIFAR-10 statistics file from https://github.com/bioinf-jku/TTUR (official).
