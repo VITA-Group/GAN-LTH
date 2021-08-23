@@ -22,6 +22,7 @@ def main():
     torch.cuda.manual_seed(args.random_seed)
     np.random.seed(args.random_seed)
     torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
     os.environ['PYTHONHASHSEED'] = str(args.random_seed)
     
     # set tf env
