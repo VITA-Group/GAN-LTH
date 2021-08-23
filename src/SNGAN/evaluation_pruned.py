@@ -19,8 +19,6 @@ from utils.fid_score import create_inception_graph, check_or_download_inception
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--load-path", type=str)
-    parser.add_argument("--random_seed", type=int, default=12345)
-
     parser.add_argument('--bottom_width', type=int, default=4)
     parser.add_argument('--latent_dim', type=int, default=128)
     parser.add_argument('--gf_dim', type=int, default=256)
@@ -181,11 +179,11 @@ def main():
     torch.cuda.manual_seed(args.random_seed)
     np.random.seed(args.random_seed)
     #print("remaining percent: {}".format(0.8 ** checkpoint['round']))
-    #pruning_generate(gen_net, checkpoint['avg_gen_state_dict']) # Create a buffer for mask]
+    pruning_generate(gen_net, checkpoint['avg_gen_state_dict']) # Create a buffer for mask]
     gen_net.load_state_dict(checkpoint['avg_gen_state_dict'])
     
-    #see_remain_rate_mask(gen_net)
-    #see_remain_rate(gen_net)
+    see_remain_rate_mask(gen_net)
+    see_remain_rate(gen_net)
     print("Best FID:{}".format(checkpoint['best_fid'])) 
     fixed_z = torch.cuda.FloatTensor(np.random.normal(0, 1, (25, args.latent_dim)))
     fid_stat = 'fid_stat/fid_stats_cifar10_train.npz'
