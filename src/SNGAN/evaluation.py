@@ -178,7 +178,7 @@ def main():
     create_inception_graph(inception_path)
     assert os.path.exists(args.load_path), "checkpoint file {} is not found".format(args.load_path)
     checkpoint = torch.load(args.load_path)
-    set_seed(args.random_seed)
+    set_seed(100)
     #print("remaining percent: {}".format(0.8 ** checkpoint['round']))
     #pruning_generate(gen_net, checkpoint['avg_gen_state_dict']) # Create a buffer for mask]
     gen_net.load_state_dict(checkpoint['avg_gen_state_dict'])
