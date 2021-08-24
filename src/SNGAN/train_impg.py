@@ -3,7 +3,7 @@ import models
 import datasets
 import random
 from functions import train, validate, LinearLrDecay, load_params, copy_params
-from utils.utils import set_log_dir, save_checkpoint_imp, create_logger, pruning_generate, see_remain_rate, rewind_weight
+from utils.utils import set_log_dir, save_checkpoint_imp, create_logger, pruning_generate, see_remain_rate, rewind_weight, set_seed
 from utils.inception_score import _init_inception
 from utils.fid_score import create_inception_graph, check_or_download_inception
 
@@ -22,10 +22,7 @@ torch.backends.cudnn.benchmark = True
 
 def main():
     args = cfg.parse_args()
-    random.seed(args.random_seed)
-    torch.manual_seed(args.random_seed)
-    torch.cuda.manual_seed(args.random_seed)
-    np.random.seed(args.random_seed)
+    set_seed(args.random_seed)
     # set tf env
     _init_inception()
     inception_path = check_or_download_inception(None)
@@ -105,6 +102,7 @@ def main():
 
     gen_net.load_state_dict(checkpoint['gen_state_dict'])
     dis_net.load_state_dict(checkpoint['dis_state_dict'])
+    avg_gen_net.load_state_dict(checkpoint['gen_state_dict'])
     round_ = 0
     for ro in range(10):
         best_fid = 1e4
