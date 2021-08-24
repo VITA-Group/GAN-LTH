@@ -6,6 +6,8 @@
 
 import os
 import torch
+
+import random
 import dateutil.tz
 from datetime import datetime
 import time
@@ -125,3 +127,13 @@ def save_checkpoint_imp(states, is_best, output_dir,
     torch.save(states, os.path.join(output_dir, "checkpoint_{}.pth".format(states['round'])))
     if is_best:
         torch.save(states, os.path.join(output_dir, "checkpoint_{}_best.pth".format(states['round'])))
+
+
+def set_seed(seed):
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+    np.random.seed(seed)
+    random.seed(seed)
+    os.environ['PYTHONHASHSEED'] = str(seed)

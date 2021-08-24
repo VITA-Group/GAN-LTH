@@ -3,7 +3,7 @@ import models
 import datasets
 import random
 from functions import train, validate, LinearLrDecay, load_params, copy_params
-from utils.utils import set_log_dir, save_checkpoint, create_logger
+from utils.utils import set_log_dir, save_checkpoint, create_logger, set_seed
 from utils.inception_score import _init_inception
 from utils.fid_score import create_inception_graph, check_or_download_inception
 
@@ -18,13 +18,7 @@ from copy import deepcopy
 
 def main():
     args = cfg.parse_args()
-    random.seed(args.random_seed)
-    torch.manual_seed(args.random_seed)
-    torch.cuda.manual_seed(args.random_seed)
-    np.random.seed(args.random_seed)
-    torch.backends.cudnn.deterministic = False
-    torch.backends.cudnn.benchmark = True
-    os.environ['PYTHONHASHSEED'] = str(args.random_seed)
+    set_seed(args.random_seed)
     
     # import network
     gen_net = eval('models.'+args.model+'.Generator')(args=args)

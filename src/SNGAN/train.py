@@ -3,7 +3,7 @@ import models
 import datasets
 import random
 from functions import train, validate, LinearLrDecay, load_params, copy_params
-from utils.utils import set_log_dir, save_checkpoint, create_logger
+from utils.utils import set_log_dir, save_checkpoint, create_logger, set_seed
 from utils.inception_score import _init_inception
 from utils.fid_score import create_inception_graph, check_or_download_inception
 
@@ -17,13 +17,7 @@ from copy import deepcopy
 
 def main():
     args = cfg.parse_args()
-    random.seed(args.random_seed)
-    torch.manual_seed(args.random_seed)
-    torch.cuda.manual_seed(args.random_seed)
-    np.random.seed(args.random_seed)
-    torch.backends.cudnn.deterministic = True
-    torch.backends.cudnn.benchmark = False
-    os.environ['PYTHONHASHSEED'] = str(args.random_seed)
+    set_seed(args.random_seed)
     
     # set tf env
     _init_inception()
@@ -68,11 +62,6 @@ def main():
     args.max_epoch = args.max_epoch * args.n_critic
     if args.max_iter:
         args.max_epoch = np.ceil(args.max_iter * args.n_critic / len(train_loader))
-    print(args.max_iter)
-    print(args.n_critic)
-    print(len(train_loader))
-    print(args.max_epoch)
-    assert False
     # initial
     fixed_z = torch.cuda.FloatTensor(np.random.normal(0, 1, (25, args.latent_dim)))
     gen_avg_param = copy_params(gen_net)
