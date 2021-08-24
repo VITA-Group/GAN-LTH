@@ -68,6 +68,9 @@ def main():
     args.max_epoch = args.max_epoch * args.n_critic
     if args.max_iter:
         args.max_epoch = np.ceil(args.max_iter * args.n_critic / len(train_loader))
+    print(args.max_iter)
+    print(args.n_critic)
+    print(len(train_loader))
     print(args.max_epoch)
     assert False
     # initial
