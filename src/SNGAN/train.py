@@ -68,7 +68,8 @@ def main():
     args.max_epoch = args.max_epoch * args.n_critic
     if args.max_iter:
         args.max_epoch = np.ceil(args.max_iter * args.n_critic / len(train_loader))
-
+    print(args.max_epoch)
+    assert False
     # initial
     fixed_z = torch.cuda.FloatTensor(np.random.normal(0, 1, (25, args.latent_dim)))
     gen_avg_param = copy_params(gen_net)
