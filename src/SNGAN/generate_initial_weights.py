@@ -46,6 +46,7 @@ def main():
     initial_dis_net_weight = deepcopy(dis_net.state_dict())
     initial_gen_net_weight = deepcopy(gen_net.state_dict())
     
+    os.makedirs(args.save_path, exist_ok=True)
     torch.save(initial_dis_net_weight, os.path.join(args.save_path, 'initial_dis_net.pth'))
     torch.save(initial_gen_net_weight, os.path.join(args.save_path, 'initial_gen_net.pth'))
 
