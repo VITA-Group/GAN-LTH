@@ -11,6 +11,7 @@ import argparse
 from tqdm import tqdm
 from copy import deepcopy
 
+from utils.utils import set_seed
 from utils.inception_score import get_inception_score
 from utils.fid_score import calculate_fid_given_paths
 from utils.inception_score import _init_inception
@@ -177,9 +178,7 @@ def main():
     create_inception_graph(inception_path)
     assert os.path.exists(args.load_path), "checkpoint file {} is not found".format(args.load_path)
     checkpoint = torch.load(args.load_path)
-    torch.manual_seed(args.random_seed)
-    torch.cuda.manual_seed(args.random_seed)
-    np.random.seed(args.random_seed)
+    set_seed(args.random_seed)
     #print("remaining percent: {}".format(0.8 ** checkpoint['round']))
     #pruning_generate(gen_net, checkpoint['avg_gen_state_dict']) # Create a buffer for mask]
     gen_net.load_state_dict(checkpoint['avg_gen_state_dict'])
