@@ -3,7 +3,7 @@ import models
 import datasets
 import random
 from functions import train_with_mask, train_with_mask_kd, validate, LinearLrDecay, load_params, copy_params
-from utils.utils import set_log_dir, save_checkpoint_imp, create_logger, pruning_generate, see_remain_rate, rewind_weight, see_remain_rate_orig
+from utils.utils import set_log_dir, save_checkpoint_imp, create_logger, pruning_generate, see_remain_rate, rewind_weight, see_remain_rate_orig, set_seed
 from utils.inception_score import _init_inception
 from utils.fid_score import create_inception_graph, check_or_download_inception
 
@@ -23,9 +23,7 @@ torch.backends.cudnn.benchmark = True
 
 def main():
     args = cfg.parse_args()
-    random.seed(args.random_seed)
-    torch.manual_seed(args.random_seed)
-    torch.cuda.manual_seed(args.random_seed)
+    set_seed(args.seed)
 
     # set tf env
     _init_inception()
