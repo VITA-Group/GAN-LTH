@@ -1,1 +1,0 @@
-nohup python cp.py --rho 11e-4 --dataset horse2zebra --task A2B --gpu 3 > 3.out &

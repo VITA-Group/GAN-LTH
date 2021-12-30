@@ -1,6 +1,0 @@
-#!/bin/bash
-
-for i in {0..199}
-do
-    python test.py --gpu 0 --model_id $i --dataset summer2winter_yosemite
-done
